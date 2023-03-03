@@ -1,0 +1,59 @@
+<script>
+    // Constants
+    const API_KEY = "YOUR API";
+    const MODEL_TYPE = "gpt-3.5-turbo"; //chatGPT model
+
+    // Generates prompt based on the selected text and displays it in the result box
+    function generatePrompt() {
+        const selectedText = document.getElementById("selectedText");
+        let prompt = selectedText.value;
+        const resultBox = document.getElementById("resultBox");
+
+        // Replace occurrences of "shift + enter" with a newline character
+        prompt = prompt.replace(/\n/g, "");
+        prompt = prompt.replace(/\r/g, "");
+        prompt = prompt.replace(/Shift\n/g, "\n");
+
+        const temperature = 0;
+        const maxTokens = 2060;
+
+        const requestBody = {
+            model: MODEL_TYPE,
+            messages: [{ role: "user", content: prompt }],
+            temperature,
+            max_tokens: maxTokens,
+        };
+
+        const requestOptions = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + API_KEY,
+            },
+            body: JSON.stringify(requestBody),
+        };
+
+        fetch("https://api.openai.com/v1/chat/completions", requestOptions)
+            .then((response) => response.json())
+            .then((data) => {
+                const generatedText = data["choices"][0]["message"]["content"];
+                console.log(generatedText);
+                resultBox.value = generatedText.toString();
+                // Clear input box only if API request was successful
+               
+            })
+            .catch((error) => console.error(error));
+    }
+
+    // Inserts a line break when user presses "Shift + Enter"
+    // or generates prompt when user presses "Enter"
+    function handleKeyPress(event) {
+        const selectedText = document.getElementById("selectedText");
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            generatePrompt();
+        } else if (event.key === "Enter" && event.shiftKey) {
+            selectedText.value += "\n";
+        }
+    }
+</script>
